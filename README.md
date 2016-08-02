@@ -1,16 +1,28 @@
 # centos-lamp
-A CentOS 7 Docker LAMP suitable for local Drupal or WordPress development. This is meant to simulate a development environment compatible with cPanel hosting. This container is ideal for running on Windows or Mac as everything is in one container.
+A CentOS 7 Docker LAMP suitable for local PHP development
 
 # features
 - Centos 7
 - Apache 2.4
 - MariaDB 10.1
 - PHP 7.0
-- SSH
 - phpMyAdmin
 - Git
 - Drush
 - NodeJS
+- Composer
+
+# quickstart
+
+```
+cd project
+
+# Start container
+docker run -d -p 80:80 -v `pwd`:/var/www/html:Z -t andrewklau/centos-lamp
+
+# Enter container
+docker exec -it containername sh
+```
 
 # example usage
 
@@ -24,12 +36,11 @@ Move into the project folder.
 
 Run the command to launch the docker and map project and database directory.
 
-``docker run -d -p 8080:80 -p 8022:22 -v `pwd`:/var/www/html -v `pwd`/database:/var/lib/phpMyAdmin/upload -t otherdata/centos-lamp``
+``docker run -d -p 8080:80 -v `pwd`:/var/www/html:Z -v `pwd`/database:/var/lib/phpMyAdmin/upload:Z -t andrewklau/centos-lamp``
 
 # usage notes
 
-You can now move a copy of your Drupal or WordPress files into the project folder, and move an .sql dump into the database folder. 
+Put a .sql dump into the database folder for import
 
-To access the local docker visit http://localhost:8080.  
-
-To access phpMyadmin visit http://localhost:8080/phpmyadmin.   
+url: http://localhost:8080
+phpmyadmin: http://localhost:8080/phpmyadmin

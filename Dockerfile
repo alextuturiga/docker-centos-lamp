@@ -1,20 +1,10 @@
 FROM centos:centos7
-MAINTAINER Wesley Render <info@otherdata.com>
+MAINTAINER Andrew Lau <andrew@andrewklau.com>
 
 # Install varioius utilities
-RUN yum -y install curl wget unzip git vim \
+RUN yum -y install curl wget unzip git vim nano \
 iproute python-setuptools hostname inotify-tools yum-utils which \
-epel-release openssh-server openssh-clients
-
-# Configure SSH
-RUN ssh-keygen -b 1024 -t rsa -f /etc/ssh/ssh_host_key \
-&& ssh-keygen -b 1024 -t rsa -f /etc/ssh/ssh_host_rsa_key \
-&& ssh-keygen -b 1024 -t dsa -f /etc/ssh/ssh_host_dsa_key \
-&& sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config \
-&& sed -ri 's/#UsePAM no/UsePAM no/g' /etc/ssh/sshd_config
-
-# Set root password
-RUN echo root:docker | chpasswd && yum install -y passwd
+epel-release
 
 # Install Python and Supervisor
 RUN yum -y install python-setuptools \
@@ -45,16 +35,14 @@ RUN yum install -y phpMyAdmin \
 && sed -i 's/post_max_size = 8M/post_max_size = 512M/g' /etc/php.ini \
 && sed -i 's/memory_limit = 128M/memory_limit = 512M/g' /etc/php.ini
 
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
 # Install MariaDB
 COPY MariaDB.repo /etc/yum.repos.d/MariaDB.repo
 RUN yum clean all;yum -y install mariadb-server mariadb-client
 VOLUME /var/lib/mysql
 EXPOSE 3306
-
-# Setup Drush
-RUN wget http://files.drush.org/drush.phar \
-&& chmod +x drush.phar \
-&& mv drush.phar /usr/local/bin/drush
 
 # Setup NodeJS
 RUN curl --silent --location https://rpm.nodesource.com/setup_4.x | bash - \
@@ -67,5 +55,5 @@ RUN ln -sf /usr/share/zoneinfo/UTC /etc/localtime \
 	&& echo "NETWORKING=yes" > /etc/sysconfig/network
 
 COPY supervisord.conf /etc/supervisord.conf
-EXPOSE 22 80
+EXPOSE 80
 CMD ["/usr/bin/supervisord"]
