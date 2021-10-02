@@ -36,12 +36,6 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 RUN yum -y install redis;
 EXPOSE 3000
 
-# Setup NodeJS
-RUN curl --silent --location https://rpm.nodesource.com/setup_6.x | bash - \
-&& yum -y install nodejs gcc-c++ make \
-&& npm install -g npm \
-&& npm install -g gulp grunt-cli \
-&& yum clean all
 
 # UTC Timezone & Networking
 RUN ln -sf /usr/share/zoneinfo/UTC /etc/localtime \
