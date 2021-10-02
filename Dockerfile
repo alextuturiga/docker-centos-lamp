@@ -1,18 +1,32 @@
 FROM centos:centos7
 MAINTAINER Andrew Lau <andrew@andrewklau.com>
 
+ENV container docker
+RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == \
+systemd-tmpfiles-setup.service ] || rm -f $i; done); \
+rm -f /lib/systemd/system/multi-user.target.wants/*;\
+rm -f /etc/systemd/system/*.wants/*;\
+rm -f /lib/systemd/system/local-fs.target.wants/*; \
+rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+rm -f /lib/systemd/system/basic.target.wants/*;\
+rm -f /lib/systemd/system/anaconda.target.wants/*;
+
 # Install varioius utilities
-RUN yum -y install curl wget unzip git vim nano \
+RUN yum -y install systemd curl wget unzip git vim nano \
 iproute python-setuptools hostname inotify-tools yum-utils which \
-epel-release
+epel-release beanstalkd
+
+RUN systemctl enable beanstalkd
+RUN systemctl start beanstalkd
 
 # Install Python and Supervisor
-RUN yum -y install python-setuptools \
-&& mkdir -p /var/log/supervisor \
-&& easy_install supervisor
+RUN yum -y install python-setuptools
 
 # Install Apache
 RUN yum -y install nginx
+RUN systemctl enable nginx
+RUN systemctl start nginx
 EXPOSE 80
 EXPOSE 443
 
@@ -41,5 +55,4 @@ EXPOSE 3000
 RUN ln -sf /usr/share/zoneinfo/UTC /etc/localtime \
 	&& echo "NETWORKING=yes" > /etc/sysconfig/network
 
-COPY supervisord.conf /etc/supervisord.conf
-CMD ["/usr/bin/supervisord"]
+CMD ["/usr/sbin/init"]
