@@ -12,37 +12,25 @@ RUN yum -y install python-setuptools \
 && easy_install supervisor
 
 # Install Apache
-RUN yum -y install httpd
+RUN yum -y install nginx
+EXPOSE 80
+EXPOSE 443
 
 # Install Remi Updated PHP 7
 RUN wget http://rpms.remirepo.net/enterprise/remi-release-7.rpm \
 && rpm -Uvh remi-release-7.rpm \
-&& yum-config-manager --enable remi-php72 \
-&& yum -y install php php-devel php-gd php-pdo php-soap php-xmlrpc php-xml php-phpunit-PHPUnit
+&& yum-config-manager --enable remi-php70 \
+&& yum -y install php70-php php70-php-common php70-php-devel php70-php-gd php70-php-pdo php70-php-soap php70-php-xml php70-php-xmlrpc php70-php-fpm
 
-# Reconfigure Apache
-RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/httpd/conf/httpd.conf
 
 # Install phpMyAdmin
-RUN yum install -y phpMyAdmin \
-&& sed -i 's/Require ip 127.0.0.1//g' /etc/httpd/conf.d/phpMyAdmin.conf \
-&& sed -i 's/Require ip ::1/Require all granted/g' /etc/httpd/conf.d/phpMyAdmin.conf \
-&& sed -i 's/Allow from 127.0.0.1/Allow from all/g' /etc/httpd/conf.d/phpMyAdmin.conf \
-&& sed -i "s/'cookie'/'config'/g" /etc/phpMyAdmin/config.inc.php \
-&& sed -i "s/\['user'\] .*= '';/\['user'\] = 'root';/g" /etc/phpMyAdmin/config.inc.php \
-&& sed -i "/AllowNoPassword.*/ {N; s/AllowNoPassword.*FALSE/AllowNoPassword'] = TRUE/g}" /etc/phpMyAdmin/config.inc.php \
-&& sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 512M/g' /etc/php.ini \
+RUN sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 512M/g' /etc/php.ini \
 && sed -i 's/post_max_size = 8M/post_max_size = 512M/g' /etc/php.ini \
 && sed -i 's/memory_limit = 128M/memory_limit = 512M/g' /etc/php.ini
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Install MariaDB
-COPY MariaDB.repo /etc/yum.repos.d/MariaDB.repo
-RUN yum clean all;yum -y install mariadb-server mariadb-client
-VOLUME /var/lib/mysql
-EXPOSE 3306
 
 # Install Redis
 RUN yum -y install redis;
@@ -60,5 +48,4 @@ RUN ln -sf /usr/share/zoneinfo/UTC /etc/localtime \
 	&& echo "NETWORKING=yes" > /etc/sysconfig/network
 
 COPY supervisord.conf /etc/supervisord.conf
-EXPOSE 80
 CMD ["/usr/bin/supervisord"]
